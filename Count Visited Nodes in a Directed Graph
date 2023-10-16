@@ -1,0 +1,136 @@
+There is a directed graph consisting of n nodes numbered from 0 to n - 1 and n directed edges.
+You are given a 0-indexed array edges where edges[i] indicates that there is an edge from node i to node edges[i].
+Consider the following process on the graph:
+You start from a node x and keep visiting other nodes through edges until you reach a node that you have already visited before on this same process.
+Return an array answer where answer[i] is the number of different nodes that you will visit if you perform the process starting from node i.
+
+
+Example 1:
+Input: edges = [1,2,0,0]
+Output: [3,3,3,4]
+Explanation: We perform the process starting from each node in the following way:
+- Starting from node 0, we visit the nodes 0 -> 1 -> 2 -> 0. The number of different nodes we visit is 3.
+- Starting from node 1, we visit the nodes 1 -> 2 -> 0 -> 1. The number of different nodes we visit is 3.
+- Starting from node 2, we visit the nodes 2 -> 0 -> 1 -> 2. The number of different nodes we visit is 3.
+- Starting from node 3, we visit the nodes 3 -> 0 -> 1 -> 2 -> 0. The number of different nodes we visit is 4.
+
+
+Example 2:
+Input: edges = [1,2,3,4,0]
+Output: [5,5,5,5,5]
+Explanation: Starting from any node we can visit every node in the graph in the process.
+ 
+
+Constraints:
+
+n == edges.length
+2 <= n <= 105
+0 <= edges[i] <= n - 1
+edges[i] != i
+
+
+
+
+
+Soln :-
+
+Java
+class Solution {
+    private void fillCycle(List<Integer> edges, boolean[] visited, int[] result, int start) {
+        int length = 0;
+        for (int x = start; !visited[x]; x = edges.get(x)) {
+            visited[x] = true;
+            length++;
+        }
+        result[start] = length;
+        for (int x = edges.get(start); x != start; x = edges.get(x)) {
+            result[x] = length;
+        }
+    }
+
+    public int[] countVisitedNodes(List<Integer> edges) {
+        int n = edges.size();
+        int[] indegree = new int[n];
+        int[] result = new int[n];
+        boolean[] visited = new boolean[n];
+        Queue<Integer> q = new LinkedList<>();
+        Stack<Integer> s = new Stack<>();
+        for (int e : edges) {
+            indegree[e]++;
+        }
+        for (int i = 0; i < n; i++) {
+            if (indegree[i] == 0) {
+                q.add(i);
+            }
+        }
+        while (!q.isEmpty()) {
+            int x = q.remove();
+            s.push(x);
+            visited[x] = true;
+            if (--indegree[edges.get(x)] == 0) {
+                q.add(edges.get(x));
+            }
+        }
+        for (int i = 0; i < n; i++) {
+            if (!visited[i]) {
+                fillCycle(edges, visited, result, i);
+            }
+        }
+        while (!s.isEmpty()) {
+            int x = s.pop();
+            result[x] = result[edges.get(x)] + 1;
+        }
+        return result;
+    }
+}
+
+C++
+class Solution {
+private:
+    void fillCycle(vector<int>& edges, vector<bool>& visited, vector<int>& result, int start) {
+        int length = 0;
+        for (int x = start; !visited[x]; x = edges[x]) {
+            visited[x] = true;
+            length++;
+        }
+        result[start] = length;
+        for (int x = edges[start]; x != start; x = edges[x]) {
+            result[x] = length;
+        }
+    }
+    
+public:
+    vector<int> countVisitedNodes(vector<int>& edges) {
+        int n = edges.size();
+        vector<int> indegree(n), result(n);
+        vector<bool> visited(n);
+        queue<int> q;
+        stack<int> s;
+        for (int e: edges) {
+            indegree[e]++;
+        }
+        for (int i = 0; i < n; i++) {
+            if (!indegree[i]) {
+                q.push(i);
+            }
+        }
+        while (!q.empty()) {
+            int x = q.front(); q.pop();
+            s.push(x);
+            visited[x] = true;
+            if (!--indegree[edges[x]]) {
+                q.push(edges[x]);
+            }
+        }
+        for (int i = 0; i < n; i++) {
+            if (!visited[i]) {
+                fillCycle(edges, visited, result, i);
+            }
+        }
+        while (!s.empty()) {
+            int x = s.top(); s.pop();
+            result[x] = result[edges[x]] + 1;
+        }
+        return result;
+    }
+};
