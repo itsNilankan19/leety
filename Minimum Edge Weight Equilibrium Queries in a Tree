@@ -1,0 +1,266 @@
+There is an undirected tree with n nodes labeled from 0 to n - 1. You are given the integer n and a 2D integer array edges of length n - 1, where edges[i] = [ui, vi, wi] indicates that there is an edge between nodes ui and vi with weight wi in the tree.
+You are also given a 2D integer array queries of length m, where queries[i] = [ai, bi]. For each query, find the minimum number of operations required to make the weight of every edge on the path from ai to bi equal. In one operation, you can choose any edge of the tree and change its weight to any value.
+Note that:
+Queries are independent of each other, meaning that the tree returns to its initial state on each new query.
+The path from ai to bi is a sequence of distinct nodes starting with node ai and ending with node bi such that every two adjacent nodes in the sequence share an edge in the tree.
+Return an array answer of length m where answer[i] is the answer to the ith query.
+
+ 
+
+Example 1:
+
+Input: n = 7, edges = [[0,1,1],[1,2,1],[2,3,1],[3,4,2],[4,5,2],[5,6,2]], queries = [[0,3],[3,6],[2,6],[0,6]]
+Output: [0,0,1,3]
+Explanation: In the first query, all the edges in the path from 0 to 3 have a weight of 1. Hence, the answer is 0.
+In the second query, all the edges in the path from 3 to 6 have a weight of 2. Hence, the answer is 0.
+In the third query, we change the weight of edge [2,3] to 2. After this operation, all the edges in the path from 2 to 6 have a weight of 2. Hence, the answer is 1.
+In the fourth query, we change the weights of edges [0,1], [1,2] and [2,3] to 2. After these operations, all the edges in the path from 0 to 6 have a weight of 2. Hence, the answer is 3.
+For each queries[i], it can be shown that answer[i] is the minimum number of operations needed to equalize all the edge weights in the path from ai to bi.
+
+
+Example 2:
+
+Input: n = 8, edges = [[1,2,6],[1,3,4],[2,4,6],[2,5,3],[3,6,6],[3,0,8],[7,0,2]], queries = [[4,6],[0,4],[6,5],[7,4]]
+Output: [1,2,2,3]
+Explanation: In the first query, we change the weight of edge [1,3] to 6. After this operation, all the edges in the path from 4 to 6 have a weight of 6. Hence, the answer is 1.
+In the second query, we change the weight of edges [0,3] and [3,1] to 6. After these operations, all the edges in the path from 0 to 4 have a weight of 6. Hence, the answer is 2.
+In the third query, we change the weight of edges [1,3] and [5,2] to 6. After these operations, all the edges in the path from 6 to 5 have a weight of 6. Hence, the answer is 2.
+In the fourth query, we change the weights of edges [0,7], [0,3] and [1,3] to 6. After these operations, all the edges in the path from 7 to 4 have a weight of 6. Hence, the answer is 3.
+For each queries[i], it can be shown that answer[i] is the minimum number of operations needed to equalize all the edge weights in the path from ai to bi.
+ 
+
+Constraints:
+
+1 <= n <= 104
+edges.length == n - 1
+edges[i].length == 3
+0 <= ui, vi < n
+1 <= wi <= 26
+The input is generated such that edges represents a valid tree.
+1 <= queries.length == m <= 2 * 104
+queries[i].length == 2
+0 <= ai, bi < n
+
+
+
+
+
+
+
+Soln :-
+
+Java
+class Solution {
+    List<List<int[]>> graph;
+    int[] parentOf;
+    int[] depthLevel;
+    int[][] wtFreq;
+    int[][] parentOfMatrix;
+    public int[] minOperationsQueries(int n, int[][] edges, int[][] queries) {
+        graph = new ArrayList<>();
+        parentOf = new int[n];
+        depthLevel = new int[n]; 
+        wtFreq = new int[n][27];
+        for(int i = 0; i < n; i++) {
+            graph.add(new ArrayList<>());
+        }
+        
+        for(int[] edge : edges) {
+            graph.get(edge[0]).add(new int[]{edge[1], edge[2]});
+            graph.get(edge[1]).add(new int[]{edge[0], edge[2]});
+        }
+
+        populateData(0, -1, 1, new int[27]);
+        parentOf[0] = 0;
+        parentOfMatrix = buildparentOfMatrix();
+
+        int[] results = new int[queries.length];
+
+        for(int q = 0; q < queries.length; q++) {
+            int u = queries[q][0];
+            int v = queries[q][1];
+            int LcaUsingBinaryLifting = LcaUsingBinaryLifting(u, v);
+            
+            int maxFreq_U_V = 0, totalWtFreq_U_V = 0;
+
+            for(int wtVal = 1; wtVal <= 26; wtVal++) {
+                int freq = wtFreq[LcaUsingBinaryLifting][wtVal];
+                int freqU = wtFreq[u][wtVal];
+                int freqV = wtFreq[v][wtVal];
+
+                totalWtFreq_U_V += freqU + freqV - 2 * freq;
+
+                if(freqU + freqV - 2 * freq > maxFreq_U_V) {
+                    maxFreq_U_V = freqU + freqV - 2 * freq;
+                }
+            }
+
+            results[q] = totalWtFreq_U_V - maxFreq_U_V;
+        }
+
+        return results;
+    }
+
+    private int LcaUsingBinaryLifting(int u, int v) {
+        if(depthLevel[u] > depthLevel[v]) {
+            return LcaUsingBinaryLifting(v, u);
+        }
+
+        int depthLevelDiff = depthLevel[v] - depthLevel[u];
+
+        for(int bitPos = 0; bitPos < 31; bitPos++) {
+            if((depthLevelDiff & (1 << bitPos)) != 0) {
+                int parentOfOfV = parentOfMatrix[bitPos][v];
+                v = parentOfOfV;
+            }
+        }
+        
+        if(u == v) return v;
+
+        for(int bitPos = 30; bitPos >= 0; bitPos--) {
+            if(parentOfMatrix[bitPos][u] != parentOfMatrix[bitPos][v]) {
+                u = parentOfMatrix[bitPos][u];
+                v = parentOfMatrix[bitPos][v];
+            }
+        }
+        return parentOfMatrix[0][v];
+    }
+    private void populateData(int node, int par, int level, int[] wts) {
+        depthLevel[node] = level;
+        parentOf[node] = par;
+
+        for(int i = 0; i <= 26; i++) {
+            wtFreq[node][i] = wts[i];
+        }
+
+        for(int[] child : graph.get(node)) {
+            if(child[0] == par) continue;
+
+            wts[child[1]]++;
+            populateData(child[0], node, level + 1, wts);
+            wts[child[1]]--;
+        }
+    }
+
+    private int[][] buildparentOfMatrix() {
+        int n = parentOf.length, limit = 31;
+        int[][] parMat = new int[limit][n];
+        
+        parMat[0] = parentOf;
+        for(int bitPos = 1; bitPos < limit; bitPos++) {
+            for(int indx = 0; indx < n; indx++) {
+                /
+                int prevParent = parMat[bitPos - 1][indx];
+                parMat[bitPos][indx] = parMat[bitPos - 1][prevParent];
+            }
+        }
+
+        return parMat;
+    }
+}
+
+C++
+class Solution {
+public:
+    int mxlog = 25;
+    vector<vector<pair<int,int>>> graph;
+    vector<vector<int>> parent;
+    vector<int> depth;
+    unordered_set<int> W; 
+    
+    vector<vector<int>> Q; 
+    int N;
+    void dfs(int u,int p = -1,int d = 0,int q = 0){
+        depth[u] = d;
+        parent[0][u] = p;
+        for(auto v:graph[u]){
+            if(v.first== p)continue;
+            for(auto q:W){
+                if(q == v.second)
+                    Q[q][v.first] = Q[q][u]+1;
+                else 
+                    Q[q][v.first] = Q[q][u];
+            }
+            dfs(v.first,u,d+1,q+v.second);
+        }
+    }
+
+    void build(){
+        for(int i = 0;i<N;i++)for(int j = 0;j<mxlog;j++)parent[j][i] = -1;
+        for(int i = 0;i<N;i++)depth[i]= -1;
+        dfs(0);
+        for(int i = 0;i<N;i++)
+            if(depth[i]== -1)dfs(i);
+
+        for(int i = 1;i<mxlog;i++){
+            for(int u = 0;u<N;u++){
+                if(parent[i-1   ][u]!= -1)
+                parent[i][u] = parent[i-1][parent[i-1][u]];
+            }
+        }
+    }
+
+    int lca(int u ,int v){
+        if(depth[u]>depth[v])swap(u,v);
+        int W = depth[v]-depth[u];
+        for(int i = mxlog-1;i>=0;i--){
+            if(W & (1<<i))
+                v = parent[i][v];
+        }
+        if(u == v)return u; 
+
+        for(int i = mxlog-1;i>=0;i--){
+            if(parent[i][u]!= parent[i][v]){
+                u = parent[i][u];
+                v = parent[i][v];
+            }
+        }
+        return parent[0][u];
+    }
+    
+    int numberOnes(int u,int v,int w,int LCA){
+        return Q[w][u]+Q[w][v]-(2*Q[w][LCA]);
+    }
+    
+    
+    vector<int> minOperationsQueries(int n, vector<vector<int>>& edges, vector<vector<int>>& queries) {
+        N = n;
+        graph.resize(n);
+        depth.resize(n);
+        parent.resize(mxlog,vector<int> (n,-1));
+        Q.resize(27,vector<int> (n,0));
+        for(int i = 0;i<26;i++){
+            Q[i].resize(n);
+        }
+        
+        for(int i = 0;i<edges.size();i++){
+            int u = edges[i][0];
+            int v = edges[i][1];
+            int w = edges[i][2];
+            W.insert(w);
+            graph[u].push_back({v,w});
+            graph[v].push_back({u,w});
+        
+        }
+        
+        build();
+   
+        
+        vector<int> ans(queries.size());
+        
+        
+        for(int i = 0;i<queries.size();i++){
+            int u = queries[i][0];
+            int v = queries[i][1];
+            int LCA = lca(u,v);
+            int len = depth[u]+depth[v]-(2*depth[LCA]);
+            int res = len;
+                
+            for(auto q:W){
+                res =  min(res,len- numberOnes(u,v,q,LCA));            
+            }
+            ans[i] = res;
+        }
+        return ans;
+    }
+};
