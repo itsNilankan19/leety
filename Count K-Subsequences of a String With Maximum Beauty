@@ -1,0 +1,224 @@
+You are given a string s and an integer k.
+
+A k-subsequence is a subsequence of s, having length k, and all its characters are unique, i.e., every character occurs once.
+
+Let f(c) denote the number of times the character c occurs in s.
+
+The beauty of a k-subsequence is the sum of f(c) for every character c in the k-subsequence.
+
+For example, consider s = "abbbdd" and k = 2:
+
+f('a') = 1, f('b') = 3, f('d') = 2
+Some k-subsequences of s are:
+"abbbdd" -> "ab" having a beauty of f('a') + f('b') = 4
+"abbbdd" -> "ad" having a beauty of f('a') + f('d') = 3
+"abbbdd" -> "bd" having a beauty of f('b') + f('d') = 5
+Return an integer denoting the number of k-subsequences whose beauty is the maximum among all k-subsequences. Since the answer may be too large, return it modulo 109 + 7.
+
+A subsequence of a string is a new string formed from the original string by deleting some (possibly none) of the characters without disturbing the relative positions of the remaining characters.
+
+Notes
+
+f(c) is the number of times a character c occurs in s, not a k-subsequence.
+Two k-subsequences are considered different if one is formed by an index that is not present in the other. So, two k-subsequences may form the same string.
+ 
+
+Example 1:
+
+Input: s = "bcca", k = 2
+Output: 4
+Explanation: From s we have f('a') = 1, f('b') = 1, and f('c') = 2.
+The k-subsequences of s are: 
+bcca having a beauty of f('b') + f('c') = 3 
+bcca having a beauty of f('b') + f('c') = 3 
+bcca having a beauty of f('b') + f('a') = 2 
+bcca having a beauty of f('c') + f('a') = 3
+bcca having a beauty of f('c') + f('a') = 3 
+There are 4 k-subsequences that have the maximum beauty, 3. 
+Hence, the answer is 4. 
+Example 2:
+
+Input: s = "abbcd", k = 4
+Output: 2
+Explanation: From s we have f('a') = 1, f('b') = 2, f('c') = 1, and f('d') = 1. 
+The k-subsequences of s are: 
+abbcd having a beauty of f('a') + f('b') + f('c') + f('d') = 5
+abbcd having a beauty of f('a') + f('b') + f('c') + f('d') = 5 
+There are 2 k-subsequences that have the maximum beauty, 5. 
+Hence, the answer is 2. 
+ 
+
+Constraints:
+
+1 <= s.length <= 2 * 105
+1 <= k <= s.length
+s consists only of lowercase English letters.
+
+
+
+
+
+
+Soln :-
+
+Java
+class Solution {
+    private int f(int totalElements, int selectedElements, int moduloValue) {
+        if (selectedElements == 0)
+            return 1;
+
+        int[] temp = new int[totalElements + 1];
+        temp[0] = 1;
+
+        for (int i = 1; i <= totalElements; i++)
+            temp[i] = (int) (1L * temp[i - 1] * i % moduloValue);
+
+        int result = temp[totalElements];
+        result = (int) (1L * result * help(temp[selectedElements], moduloValue) % moduloValue);
+        result = (int) (1L * result * help(temp[totalElements - selectedElements], moduloValue) % moduloValue);
+
+        return result;
+    }
+
+    private int help(int num, int moduloValue) {
+        int mod0 = moduloValue;
+        int y = 0, x = 1;
+
+        while (num > 1) {
+            int quotient = num / moduloValue;
+            int temp = moduloValue;
+            moduloValue = num % moduloValue;
+            num = temp;
+            temp = y;
+            y = x - quotient * y;
+            x = temp;
+        }
+
+        if (x < 0)
+            x += mod0;
+
+        return x;
+    }
+
+    public int countKSubsequencesWithMaxBeauty(String inputStr, int kValue) {
+        int moduloValue = 1_000_000_007;
+        HashMap<Character, Integer> mp = new HashMap<>();
+
+        for (char ch : inputStr.toCharArray()) {
+            mp.put(ch, mp.getOrDefault(ch, 0) + 1);
+        }
+
+        if (mp.size() < kValue) {
+            return 0;
+        }
+
+        List<Integer> charCounts = new ArrayList<>(mp.values());
+        charCounts.sort(Collections.reverseOrder());
+
+        int answer = 1;
+        int tt = charCounts.size();
+        int lowestCharCount = charCounts.get(kValue - 1);
+        int tll = 0, currentLowestCharCount = 0;
+
+        for (int i = 0; i < tt; i++) {
+            if (i < kValue) {
+                answer = (int) (1L * answer * charCounts.get(i) % moduloValue);
+                if (charCounts.get(i) == lowestCharCount) {
+                    currentLowestCharCount++;
+                }
+            }
+
+            if (charCounts.get(i) == lowestCharCount) {
+                tll++;
+            }
+        }
+
+        answer = (int) (1L * answer * f(tll, currentLowestCharCount, moduloValue) % moduloValue);
+        return answer;
+    }
+}
+
+C++
+class Solution {
+public:
+    int f(int totalElements, int selectedElements, int moduloValue) {
+        if (selectedElements == 0)
+            return 1;
+    
+        vector<int> temp(totalElements + 1);
+        temp[0] = 1;
+        
+        for (int i = 1
+
+; i <= totalElements; i++)
+            temp[i] = (1LL * temp[i - 1] * i) % moduloValue;
+        
+        int result = temp[totalElements];
+        result = (1LL * result * help(temp[selectedElements], moduloValue)) % moduloValue;
+        result = (1LL * result * help(temp[totalElements - selectedElements], moduloValue)) % moduloValue;
+        
+        return result;
+    }
+
+    int help(int num, int moduloValue) {
+        int mod0 = moduloValue;
+        int y = 0, x = 1;
+        
+        while (num > 1) {
+            int quotient = num / moduloValue;
+            int temp = moduloValue;
+            moduloValue = num % moduloValue;
+            num = temp;
+            temp = y;
+            y = x - quotient * y;
+            x = temp;
+        }
+        
+        if (x < 0)
+            x += mod0;
+        
+        return x;
+    }
+    
+    int countKSubsequencesWithMaxBeauty(string inputStr, int kValue) {
+        int moduloValue = 1e9 + 7;
+        unordered_map<char, int> mp;
+        
+        for (auto ch : inputStr) {
+            mp[ch]++;
+        }
+        
+        if (mp.size() < kValue) {
+            return 0;
+        }
+        
+        vector<int> charCounts;
+        for (auto charCountPair : mp) {
+            charCounts.push_back(charCountPair.second);
+        }
+        
+        sort(charCounts.begin(), charCounts.end());
+        reverse(charCounts.begin(), charCounts.end());
+        
+        int answer = 1;
+        int tt = charCounts.size();
+        int lowestCharCount = charCounts[kValue - 1];
+        int tll = 0, currentLowestCharCount = 0;
+        
+        for (int i = 0; i < tt; i++) {
+            if (i < kValue) {
+                answer = (1LL * answer * charCounts[i]) % moduloValue;
+                if (charCounts[i] == lowestCharCount) {
+                    currentLowestCharCount++;
+                }
+            }
+            
+            if (charCounts[i] == lowestCharCount) {
+                tll++;
+            }
+        }
+        
+        answer = (1LL * answer * f(tll, currentLowestCharCount, moduloValue)) % moduloValue;
+        return answer;
+    }
+};
