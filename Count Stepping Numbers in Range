@@ -1,0 +1,147 @@
+Given two positive integers low and high represented as strings, find the count of stepping numbers in the inclusive range [low, high]. A stepping number is an integer such that all of its adjacent digits have an absolute difference of exactly 1.
+Return an integer denoting the count of stepping numbers in the inclusive range [low, high]. Since the answer may be very large, return it modulo 109 + 7.
+Note: A stepping number should not have a leading zero.
+ 
+
+Example 1:
+
+Input: low = "1", high = "11"
+Output: 10
+Explanation: The stepping numbers in the range [1,11] are 1, 2, 3, 4, 5, 6, 7, 8, 9 and 10. There are a total of 10 stepping numbers in the range. Hence, the output is 10.
+
+
+Example 2:
+
+Input: low = "90", high = "101"
+Output: 2
+Explanation: The stepping numbers in the range [90,101] are 98 and 101. There are a total of 2 stepping numbers in the range. Hence, the output is 2. 
+ 
+
+Constraints:
+
+1 <= int(low) <= int(high) < 10100
+1 <= low.length, high.length <= 100
+low and high consist of only digits.
+low and high don't have any leading zeros.
+
+
+
+
+
+
+
+Soln :-
+
+Java
+class Solution {
+      int mod = 1000000007;
+    long[][][][]dp = new long[101][11][2][2];
+    private void resetArray(){
+        for(int i=0;i<101;i++){
+            for(int j=0;j<11;j++){
+                for(int k=0;k<2;k++){
+                    Arrays.fill(dp[i][j][k],-1);
+                }
+            }
+        }
+    }
+    private long solve(String num, int currIndex, int prevDigit, boolean tight, boolean isZero){
+        if(num.length()==currIndex){
+            return isZero?0:1;
+        }
+
+        if(dp[currIndex][prevDigit+1][isZero?1:0][tight?1:0]!=-1){
+            return dp[currIndex][prevDigit+1][isZero?1:0][tight?1:0];
+        }
+
+        int limit = num.charAt(currIndex)-'0';
+        if(!tight){
+            limit = 9;
+        }
+
+        long ans = 0;
+        for(int currDigit = 0;currDigit<=limit; currDigit++){
+            boolean nextTight = tight && (currDigit==limit);
+            boolean nextZero = isZero && (currDigit == 0);
+
+            if(isZero ||(Math.abs(currDigit-prevDigit)==1)){
+                ans += (solve(num, currIndex+1, currDigit, nextTight, nextZero))%mod;
+            }
+        }
+        return dp[currIndex][prevDigit+1][isZero?1:0][tight?1:0] = ans;
+
+    }
+    public int countSteppingNumbers(String low, String high) {
+       resetArray();
+        long ans = solve(high, 0, -1, true, true);
+        resetArray();
+        ans -= solve(low, 0, -1, true, true);
+        ans =  (ans+mod)%mod;
+
+        boolean isLowValid = true;
+        for(int i=1;i<low.length();i++){
+            if(Math.abs(low.charAt(i)-low.charAt(i-1))!=1){
+                isLowValid = false;
+                break;
+            }
+        }
+        ans = (ans + mod + (isLowValid?1:0))%mod;
+        return (int)ans;
+    }
+}
+
+C++
+class Solution {
+public:
+    int mod = 1e9 + 7;
+    int dp[102][2][2][11];
+    int helper(int ind, int n, string str, bool is_smaller, bool is_non_zero, int prev){
+        if(ind == n)
+            return 1;
+        if(dp[ind][is_smaller][is_non_zero][prev] != -1)
+            return dp[ind][is_smaller][is_non_zero][prev];
+        int ans = 0;
+        int range = is_smaller ? 9 : str[ind] - '0';
+        if(ind == 0){
+            for(int i = 0 ; i <= range ; i++){
+                bool is_smaller_tmp = is_smaller ? true : i < range ;
+                ans = (ans + helper(ind + 1, n, str, is_smaller_tmp, (i != 0) ? true : false , i)) % mod;
+            }
+        }
+        else{
+            if(!is_non_zero){
+                for(int i = 0 ; i <= range ; i++){
+                    bool is_smaller_tmp = is_smaller ? true : i < range ;
+                    ans = (ans + helper(ind + 1, n, str, is_smaller_tmp, (i != 0) ? true : false , i)) % mod;
+                }
+            }
+            else{
+                int adj_left = prev - 1, adj_right = prev + 1;
+                if(adj_left >= 0 && adj_left <= range){
+                    bool is_smaller_tmp = is_smaller ? true : adj_left < range ;
+                    ans = (ans + helper(ind + 1, n, str, is_smaller_tmp, true, adj_left)) % mod;
+                }
+                if(adj_right >= 0 && adj_right <= range){
+                    bool is_smaller_tmp = is_smaller ? true : adj_right < range ;
+                    ans = (ans + helper(ind + 1, n, str, is_smaller_tmp, true, adj_right)) % mod;
+                }
+            }
+        }
+        return dp[ind][is_smaller][is_non_zero][prev] = ans;
+    }
+    
+    int countSteppingNumbers(string low, string high) {
+        int max_len = high.size(), min_len = low.size(), is_low_stepping = 1;
+        memset(dp,-1,sizeof(dp));
+        int x = helper(0,max_len,high,false,false,10);
+        memset(dp,-1,sizeof(dp));
+        int y = helper(0,min_len,low,false,false,10);
+        for(int i = 0 ; i < min_len - 1 ; i++){
+            if(abs((low[i] - '0') - (low[i + 1] - '0')) != 1){
+                is_low_stepping--;
+                break;
+            }
+        }
+        return (x - y + is_low_stepping + mod) % mod;
+    }
+};
