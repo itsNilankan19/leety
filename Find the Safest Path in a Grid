@@ -1,0 +1,229 @@
+You are given a 0-indexed 2D matrix grid of size n x n, where (r, c) represents:
+
+A cell containing a thief if grid[r][c] = 1
+An empty cell if grid[r][c] = 0
+You are initially positioned at cell (0, 0). In one move, you can move to any adjacent cell in the grid, including cells containing thieves.
+
+The safeness factor of a path on the grid is defined as the minimum manhattan distance from any cell in the path to any thief in the grid.
+Return the maximum safeness factor of all paths leading to cell (n - 1, n - 1).
+An adjacent cell of cell (r, c), is one of the cells (r, c + 1), (r, c - 1), (r + 1, c) and (r - 1, c) if it exists.
+The Manhattan distance between two cells (a, b) and (x, y) is equal to |a - x| + |b - y|, where |val| denotes the absolute value of val.
+ 
+
+Example 1:
+
+Input: grid = [[1,0,0],[0,0,0],[0,0,1]]
+Output: 0
+Explanation: All paths from (0, 0) to (n - 1, n - 1) go through the thieves in cells (0, 0) and (n - 1, n - 1).
+
+Example 2:
+
+Input: grid = [[0,0,1],[0,0,0],[0,0,0]]
+Output: 2
+Explanation: The path depicted in the picture above has a safeness factor of 2 since:
+- The closest cell of the path to the thief at cell (0, 2) is cell (0, 0). The distance between them is | 0 - 0 | + | 0 - 2 | = 2.
+It can be shown that there are no other paths with a higher safeness factor.
+
+
+Example 3:
+
+Input: grid = [[0,0,0,1],[0,0,0,0],[0,0,0,0],[1,0,0,0]]
+Output: 2
+Explanation: The path depicted in the picture above has a safeness factor of 2 since:
+- The closest cell of the path to the thief at cell (0, 3) is cell (1, 2). The distance between them is | 0 - 1 | + | 3 - 2 | = 2.
+- The closest cell of the path to the thief at cell (3, 0) is cell (3, 2). The distance between them is | 3 - 3 | + | 0 - 2 | = 2.
+It can be shown that there are no other paths with a higher safeness factor.
+ 
+
+Constraints:
+
+1 <= grid.length == n <= 400
+grid[i].length == n
+grid[i][j] is either 0 or 1.
+There is at least one thief in the grid.
+
+
+
+
+
+
+
+
+
+Soln :-
+
+Java
+class Solution {
+    public int maximumSafenessFactor(List<List<Integer>> grd) {
+        int rw = grd.size(), cw = rw;
+        int grid[][] = new int[rw][cw];
+        for(int r  = 0; r<rw; r++){
+            List<Integer> cols = grd.get(r);
+            for(int c = 0; c<cw; c++){
+                grid[r][c] = cols.get(c);
+            }
+        }
+        int  dG[][] = new int [rw][cw];
+        for(var d : dG){
+            Arrays.fill(d, Integer.MAX_VALUE);
+        }
+        if(grid[0][0] == 1)dG[0][0] = 0;
+        // up to bottom
+        for(int r = 0; r < rw; r++){
+            for(int c = 0; c < cw; c++){
+                if(r == 0 && c== 0)continue;
+                if(grid[r][c] == 1){
+                    dG[r][c] = 0;
+                    continue;
+                }
+                int minD = Math.min(r > 0 ? dG[r-1][c] : Integer.MAX_VALUE, c > 0 ? dG[r][c-1] : Integer.MAX_VALUE);
+                if(minD != Integer.MAX_VALUE)
+                 dG[r][c] = minD + 1; 
+            }
+        }
+        if(grid[rw-1][cw-1] == 1)dG[rw-1][cw - 1] = 0;
+        //down to up
+        for(int r = rw-1; r > -1; r--){
+            for(int c = cw - 1; c > -1; c--){
+                if(r == rw-1 && c == cw - 1){
+                    continue;
+                }
+                if(grid[r][c] == 1){
+                    dG[r][c] = 0;
+                    continue;
+                }
+                int minD = Math.min((r < rw-1) ?  dG[r+1][c] : Integer.MAX_VALUE, (c < cw-1) ? dG[r][c+1] : Integer.MAX_VALUE);
+                if(minD != Integer.MAX_VALUE)
+                    dG[r][c] = Math.min(dG[r][c], 1 + minD);
+            }
+        }
+        return findSf(dG, rw, cw);      
+    }
+    private int dirs[][] = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
+    private int findSf(int[][] dG, int r, int c){
+        int left = 0, right = 1000000000;
+        int maxSafe = 0;
+        while(left <= right){
+           int testSf = left + (right - left)/2;
+           if(test(dG, testSf)){
+               maxSafe = testSf;
+               left = testSf + 1;
+           }else{
+               right = testSf - 1;
+           }
+        }
+        return maxSafe; 
+    }
+    private boolean test(int [][]dG, int testSf) 
+    {
+        int sz = dG.length;
+        Deque<Pair<Integer, Integer>>que = new ArrayDeque<>();
+        boolean visited[][] = new boolean[sz][sz];
+        if (dG[0][0] < testSf) return false;
+        que.offerLast(new Pair<Integer, Integer>(0, 0));
+        visited[0][0] = true;
+        while(!que.isEmpty())
+        {
+            var cords = que.pollFirst();
+            int currRow = cords.getKey(), currCol = cords.getValue();
+            if (currRow == sz - 1 && currCol == sz - 1) return true;
+            for (var dir : dirs)
+            {
+                int newRow = currRow + dir[0];
+                int newCol = currCol + dir[1];
+                if (checkCord(visited, newRow, newCol))
+                {
+                    if (dG[newRow][newCol] < testSf) continue;
+                    visited[newRow][newCol] = true;
+                    que.offerLast(new Pair<Integer, Integer>(newRow, newCol));
+                }
+            }
+        }
+        return false;
+    }
+    private boolean checkCord(boolean [][]visited, int r, int c)
+    {
+        int cols = visited[0].length, rows = cols;
+        return !(r < 0 || c < 0 || r == rows ||  c == cols || visited[r][c] == true);
+    }
+    
+}
+
+C++
+class Solution {
+public:
+
+/// func1 to calculate minimum of distance from each 1
+   vector<vector<int> > min_distance_from1(vector<vector<int> >& grid)
+{
+    int n = grid.size(),m= grid[0].size();
+    queue<pair<int, int> > q; 
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++) {
+            if (grid[i][j]) {
+                q.push({ i, j });
+                grid[i][j] = 0; 
+            }
+            else
+                grid[i][j]= INT_MAX; 
+        }
+    }
+    int row[4] = { -1, 1, 0, 0 }, col[4] = {0, 0, -1, 1};
+       
+    while (!q.empty()) { 
+        auto top = q.front();
+        q.pop();
+        int x = top.first, y = top.second ,time = grid[x][y]; 
+        for (int i = 0; i < 4; i++) {
+            int newx = x + row[i], newy = y + col[i];
+            if (newx >= 0 && newx < n && newy >= 0 && newy < m && grid[newx][newy]== INT_MAX) { 
+                grid[newx][newy] = time + 1; 
+                q.push({newx, newy}); 
+            }
+        }
+    }
+    return grid; 
+}
+ /// func2 to find length of path minimizing the distance 
+ 
+int max_min_path(vector<vector<int>>& A) {
+    const int M = A.size();
+    const int N = A[0].size();
+    const vector<pair<int, int>> dirs = { {0, 1}, {0, -1}, {1, 0}, {-1, 0} };
+    
+    priority_queue<pair<int, pair<int, int>>> pq;
+    pq.push({ A[0][0], {0, 0} });
+    A[0][0] = -1;
+    
+    while (!pq.empty()) {
+        auto [score, coord] = pq.top();
+        pq.pop();
+        int x = coord.first;
+        int y = coord.second;
+        
+        if (x == M - 1 && y == N - 1)
+            return score;
+        
+        for (const auto& [dx, dy] : dirs) {
+            int a = x + dx;
+            int b = y + dy;
+            
+            if (a < 0 || a >= M || b < 0 || b >= N || A[a][b] == -1)
+                continue;
+            
+            pq.push({ min(score, A[a][b]), {a, b} });
+            A[a][b] = -1;
+        }
+    }
+    
+    return -1;
+}
+
+
+    int maximumSafenessFactor(vector<vector<int>>& mat) {
+        vector<vector<int> > ans = min_distance_from1(mat);
+        
+        return max_min_path(ans);
+        
+    }
+};
