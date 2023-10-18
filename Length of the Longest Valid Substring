@@ -1,0 +1,109 @@
+You are given a string word and an array of strings forbidden. A string is called valid if none of its substrings are present in forbidden.
+Return the length of the longest valid substring of the string word. A substring is a contiguous sequence of characters in a string, possibly empty.
+ 
+
+Example 1:
+
+Input: word = "cbaaaabc", forbidden = ["aaa","cb"]
+Output: 4
+Explanation: There are 11 valid substrings in word: "c", "b", "a", "ba", "aa", "bc", "baa", "aab", "ab", "abc" and "aabc". The length of the longest valid substring is 4. 
+It can be shown that all other substrings contain either "aaa" or "cb" as a substring. 
+
+
+Example 2:
+
+Input: word = "leetcode", forbidden = ["de","le","e"]
+Output: 4
+Explanation: There are 11 valid substrings in word: "l", "t", "c", "o", "d", "tc", "co", "od", "tco", "cod", and "tcod". The length of the longest valid substring is 4.
+It can be shown that all other substrings contain either "de", "le", or "e" as a substring. 
+ 
+
+Constraints:
+
+1 <= word.length <= 105
+word consists only of lowercase English letters.
+1 <= forbidden.length <= 105
+1 <= forbidden[i].length <= 10
+forbidden[i] consists only of lowercase English letters.
+
+
+
+
+
+
+
+Soln :-
+
+Java
+class Solution {
+    public int longestValidSubstring(String word, List<String> forbidden) {
+        Set<String> set = new HashSet<>();
+        int max = 0;
+        for(String s : forbidden){
+            max = Math.max(max , s.length());
+            set.add(s);
+        }
+        int ans = 0;
+        StringBuilder sb = new StringBuilder();
+        for(int i = 0 ; i < word.length() ; i++){
+            char ch = word.charAt(i);
+            sb.append(ch +"");
+            int len = sb.length();
+            for(int j = len - 1 ; j >= Math.max(0 , len - max); j--){
+                String s = sb.substring(j);
+                if(set.contains(s)){
+                    sb.delete(0 , j + 1);
+                    break;
+                    
+                }
+            }
+            ans = Math.max(sb.length() , ans);
+        }
+        return ans;
+    }
+}
+
+C++
+class Solution {
+public:
+    int longestValidSubstring(string word, vector<string>& forbidden) {
+        int n = word.length();
+        
+        vector<int> v(n,n);
+        unordered_map<string,int> mp;
+        
+        for(auto &it : forbidden) mp[it]++;
+        
+        for(int i=0;i<n;i++) {
+            string s;
+            for(int j=i;j<n && j-i < 10;j++) {
+                s += word[j];
+                if(mp[s] > 0) {
+                    v[i] = j;
+                    break;
+                }
+            }
+        }
+        
+        int ans = 0;
+        int curr = 0;
+        for(int i=0;i<n;) {
+            if(v[i] == n) {
+                curr++;
+            } else {
+                int idx = n;
+                int j = i;
+                while(j < n) {
+                    idx = min(idx,v[j]);
+                    if(j == idx) break;
+                    curr++; j++;
+                }
+                ans = max(ans,curr);
+                curr = 0;
+            }
+            i++;
+        }
+        ans = max(ans,curr);
+        return ans;
+    }
+};
