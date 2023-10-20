@@ -1,0 +1,217 @@
+Given three strings a, b, and c, your task is to find a string that has the minimum length and contains all three strings as substrings.
+If there are multiple such strings, return the lexicographically smallest one.
+
+Return a string denoting the answer to the problem.
+
+Notes
+
+A string a is lexicographically smaller than a string b (of the same length) if in the first position where a and b differ, string a has a letter that appears earlier in the alphabet than the corresponding letter in b.
+A substring is a contiguous sequence of characters within a string.
+ 
+
+Example 1:
+
+Input: a = "abc", b = "bca", c = "aaa"
+Output: "aaabca"
+Explanation:  We show that "aaabca" contains all the given strings: a = ans[2...4], b = ans[3..5], c = ans[0..2]. It can be shown that the length of the resulting string would be at least 6 and "aaabca" is the lexicographically smallest one.
+Example 2:
+
+Input: a = "ab", b = "ba", c = "aba"
+Output: "aba"
+Explanation: We show that the string "aba" contains all the given strings: a = ans[0..1], b = ans[1..2], c = ans[0..2]. Since the length of c is 3, the length of the resulting string would be at least 3. It can be shown that "aba" is the lexicographically smallest one.
+ 
+
+Constraints:
+
+1 <= a.length, b.length, c.length <= 100
+a, b, c consist only of lowercase English letters.
+
+
+
+
+
+
+
+Soln :-
+
+Java
+class Solution {
+    public String minimumString(String a, String b, String c) {
+        List<String> res = new ArrayList<>();
+        
+        res.add(combine(combine(a,b),c));
+        res.add(combine(combine(a,c),b));
+        res.add(combine(combine(b,a),c));
+        res.add(combine(combine(b,c),a));
+        res.add(combine(combine(c,b),a));
+        res.add(combine(combine(c,a),b));
+        
+        Collections.sort(res, (x,y)->x.length()==y.length() ? x.compareTo(y) : x.length()-y.length());
+        
+        return res.get(0);
+    }
+    
+    private String combine(String a, String b) {
+        if(a.contains(b)) {
+            return a;
+        }
+        String second = b;
+        int len=second.length();
+        while(len>=0 && !a.endsWith(second)) {
+            len--;
+            second = second.substring(0, len);
+        }
+        
+        return a + b.substring(len);
+    }
+}
+
+C++
+class Solution {
+public:
+    string connect(string x,string y)
+    {
+        string ans="";
+        int i=0;
+        int j=0;
+        int cnt=0;
+        int ind=0;
+        while(i<x.size())
+        {
+            if(x.size()-i>y.size())
+            {
+                cnt=0;
+                i++;
+                continue;
+            }
+            if(x.substr(i)==y.substr(0,x.size()-i))
+            {
+                ind=x.size()-i;
+                break;
+            }
+            i++;
+        }
+        ans+=x;
+        
+        for(int k=ind;k<y.size();k++) ans+=y[k];
+        return ans;
+    }
+    string solve(string x,string y,string z)
+    {
+        size_t found = x.find(y);
+        if (found != string::npos)
+        {
+            size_t f=x.find(z);
+            if(f!= string::npos)
+            {
+                return x;
+            }
+            else
+            {
+                return connect(x,z);
+            }
+        }
+        else
+        {
+            string xy="";
+            xy=connect(x,y);
+            
+            size_t found = xy.find(z);
+            if (found != string::npos)
+            {
+                return xy;
+            }
+            else
+            {
+                return connect(xy,z);
+            }
+        }
+        
+        
+    }
+    string minimumString(string a, string b, string c) 
+    {
+        string ans="";
+        string a1=solve(a,b,c);
+        string a2=solve(a,c,b);
+        
+        string b1=solve(b,a,c);
+        string b2=solve(b,c,a);
+        
+        string c1=solve(c,b,a);
+        string c2=solve(c,a,b);
+        int mini=INT_MAX;
+        if(mini>a1.size())
+        {
+            ans=a1;
+            mini=a1.size();
+        }
+        else if(mini==a1.size())
+        {
+            ans=min(ans,a1);
+        }
+        
+        
+        if(mini>a2.size())
+        {
+            ans=a2;
+            mini=a2.size();
+        }
+        else if(mini==a2.size())
+        {
+            ans=min(ans,a2);
+        }
+        
+        
+        if(mini>b1.size())
+        {
+            ans=b1;
+            mini=b1.size();
+        }
+        else if(mini==b1.size())
+        {
+            ans=min(ans,b1);
+        }
+        
+        
+        if(mini>b2.size())
+        {
+            ans=b2;
+            mini=b2.size();
+        }
+        else if(mini==b2.size())
+        {
+            ans=min(ans,b2);
+        }
+        
+        
+        if(mini>c2.size())
+        {
+            ans=c2;
+            mini=c2.size();
+        }
+        else if(mini==c2.size())
+        {
+            ans=min(ans,c2);
+        }
+        
+        
+        if(mini>c1.size())
+        {
+            ans=c1;
+            mini=c1.size();
+        }
+        else if(mini==c1.size())
+        {
+            ans=min(ans,c1);
+        }
+        cout<<a1<<endl;
+        cout<<a2<<endl;
+        
+        cout<<b1<<endl;
+        cout<<b2<<endl;
+        cout<<c1<<endl;
+        cout<<c2<<endl;
+        return ans;
+    }
+};
