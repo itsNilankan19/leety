@@ -1,0 +1,101 @@
+You are given a 0-indexed integer array nums representing the score of students in an exam. The teacher would like to form one non-empty group of students with maximal strength, where 
+the strength of a group of students of indices i0, i1, i2, ... , ik is defined as nums[i0] * nums[i1] * nums[i2] * ... * nums[ik​]. Return the maximum strength of a group the teacher can create.
+
+
+Example 1:
+
+Input: nums = [3,-1,-5,2,5,-9]
+Output: 1350
+Explanation: One way to form a group of maximal strength is to group the students at indices [0,2,3,4,5]. Their strength is 3 * (-5) * 2 * 5 * (-9) = 1350, which we can show is optimal.
+
+
+Example 2:
+
+Input: nums = [-4,-5,-4]
+Output: 20
+Explanation: Group the students at indices [0, 1] . Then, we’ll have a resulting strength of 20. We cannot achieve greater strength.
+ 
+
+Constraints:
+
+1 <= nums.length <= 13
+-9 <= nums[i] <= 9
+
+
+
+
+
+
+Soln :-
+
+
+Java
+class Solution {
+    public long maxStrength(int[] nums) {
+        Arrays.sort(nums);
+        long prdt=nums[nums.length-1];
+        int p1=0;
+        for(int x:nums){
+            if(x<0)p1++;
+        }
+     
+        int flag=0;
+        if(p1%2==1)p1--;
+        for(int x:nums){
+            if(p1==0)break;
+            if(flag==0){
+                prdt=1l;
+                flag++;
+            }
+            prdt*=1l*x;
+            p1--;
+            
+        }
+        int n=nums.length;
+        for(int i=n-1;i>=0;i--){
+            
+            if(nums[i]<=0)break;
+            if(flag==0){
+                prdt=1l;
+                flag++;
+            }
+            prdt*=1l*nums[i];
+        }
+        return prdt;
+    }
+}
+
+C++
+class Solution {
+public:
+    long long maxStrength(vector<int>& nums) {
+                 return getMaxStrength(nums, 0, 1, false);
+    }
+
+private:
+    long long getMaxStrength(vector<int>& nums, int start, long long product, bool nonZeroFlag) {
+        if (start == nums.size()) {
+            if (!nonZeroFlag) {
+                long long maxNegative = INT64_MIN;
+                for (int num : nums) {
+                    if (num < 0 && num > maxNegative) {
+                        maxNegative = num;
+                    }
+                }
+                return maxNegative;
+            }
+            return product;
+        }
+
+        if (product == 0) {
+            return 0;
+        }
+
+        long long pick = getMaxStrength(nums, start + 1, product * nums[start], true);
+
+        long long notPick = getMaxStrength(nums, start + 1, product, nonZeroFlag);
+
+        return max(pick, notPick);
+    }
+};
+
