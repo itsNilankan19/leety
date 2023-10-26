@@ -1,0 +1,84 @@
+You are given a 0-indexed integer array nums representing the strength of some heroes. The power of a group of heroes is defined as follows:
+Let i0, i1, ... ,ik be the indices of the heroes in a group. Then, the power of this group is max(nums[i0], nums[i1], ... ,nums[ik])2 * min(nums[i0], nums[i1], ... ,nums[ik]).
+Return the sum of the power of all non-empty groups of heroes possible. Since the sum could be very large, return it modulo 109 + 7.
+ 
+
+Example 1:
+
+Input: nums = [2,1,4]
+Output: 141
+Explanation: 
+1st group: [2] has power = 22 * 2 = 8.
+2nd group: [1] has power = 12 * 1 = 1. 
+3rd group: [4] has power = 42 * 4 = 64. 
+4th group: [2,1] has power = 22 * 1 = 4. 
+5th group: [2,4] has power = 42 * 2 = 32. 
+6th group: [1,4] has power = 42 * 1 = 16. 
+​​​​​​​7th group: [2,1,4] has power = 42​​​​​​​ * 1 = 16. 
+The sum of powers of all groups is 8 + 1 + 64 + 4 + 32 + 16 + 16 = 141.
+
+
+Example 2:
+
+Input: nums = [1,1,1]
+Output: 7
+Explanation: A total of 7 groups are possible, and the power of each group will be 1. Therefore, the sum of the powers of all groups is 7.
+ 
+
+Constraints:
+
+1 <= nums.length <= 105
+1 <= nums[i] <= 109
+
+
+
+
+
+
+Soln :-
+
+
+Java
+class Solution {
+    public int sumOfPower(int[] nums) {
+       ArrayList<Long >arr=new ArrayList<>();
+            for(int i:nums)      
+            {
+                 arr.add((long)i);   
+            }
+            
+            long  mod=1000000007;
+            Collections.sort(arr);
+            long mins=0;
+            long sum=0;
+            
+            for(int i=0;i<arr.size();i++)
+            {
+                    sum=(sum+((arr.get(i)* arr.get(i))%mod)*arr.get(i)%mod)%mod;
+                    sum=(sum+((mins*arr.get(i))%mod)*arr.get(i)%mod)%mod;
+                    mins=(mins*2)%mod;
+                    mins=(mins+arr.get(i))%mod;
+            }
+            int ans=(int)(sum%mod);
+            return ans;
+    }
+}
+
+C++
+class Solution {
+    const int mod = 1e9+7;
+public:
+    int sumOfPower(vector<int>& nums) {
+        long long prev = 0;
+        long long sum = 0;
+
+        sort(begin(nums), end(nums));
+
+        for (int i=0; i<nums.size(); i++) {
+            if (i > 0) prev = (1LL*prev*2 + 1LL*nums[i-1]) % mod;
+            sum = (sum + (1LL*nums[i]*nums[i])%mod * (1LL*nums[i] + prev)%mod) % mod;
+        }
+
+        return sum;
+    }
+};
