@@ -1,0 +1,140 @@
+You are given a string s consisting of only lowercase English letters. In one operation, you can do the following: 
+Select any non-empty substring of s, possibly the entire string, then replace each one of its characters with the previous character of the English alphabet. For example, 'b' is converted to 'a', and 'a' is converted to 'z'.
+Return the lexicographically smallest string you can obtain after performing the above operation exactly once.
+A substring is a contiguous sequence of characters in a string. A string x is lexicographically smaller than a string y of the same length if x[i] comes before y[i] in alphabetic order for the first position i such that x[i] != y[i].
+ 
+
+Example 1:
+
+Input: s = "cbabc"
+Output: "baabc"
+Explanation: We apply the operation on the substring starting at index 0, and ending at index 1 inclusive. 
+It can be proven that the resulting string is the lexicographically smallest. 
+
+
+Example 2:
+
+Input: s = "acbbc"
+Output: "abaab"
+Explanation: We apply the operation on the substring starting at index 1, and ending at index 4 inclusive. 
+It can be proven that the resulting string is the lexicographically smallest. 
+
+
+Example 3:
+
+Input: s = "leetcode"
+Output: "kddsbncd"
+Explanation: We apply the operation on the entire string. 
+It can be proven that the resulting string is the lexicographically smallest. 
+ 
+
+Constraints:
+
+1 <= s.length <= 3 * 105
+s consists of lowercase English letters
+
+
+
+
+
+
+Soln :-
+
+
+Java
+class Solution {
+    public String smallestString(String s) {
+        int i = 0;
+
+        while(i < s.length() && s.charAt(i) == 'a')
+            i++;
+
+        int k = i;
+
+        while(k < s.length() && s.charAt(k) != 'a')
+            k++;
+
+        if(i == s.length())
+            return s.substring(0, s.length()-1) + 'z';
+
+        StringBuilder str = new StringBuilder("");
+
+        for(int j = 0; j < i; j++)
+            str.append("a");
+
+        for(int j = i; j < k; j++)
+            str.append((char)(s.charAt(j)-1));
+
+        for(int j = k; j < s.length(); j++)
+            str.append(s.charAt(j));
+
+        return str.toString();
+    }
+}
+
+C++
+class Solution {
+public:
+    string smallestString(string s) {
+        vector<int> pos;
+        int n=s.size();
+        
+        char c='a';
+        vector<char> m(26,'#');
+        for(int i=0;i<26;i++)
+        {
+            m[i]=c;
+            c++;
+        }
+        if(n==1)
+        {
+            if(s[0]=='a')
+                return "z";
+            char c1=m[(s[0]-'a'-1)%26];
+            string s1="";
+            s1.push_back(c1);
+            return s1;
+        }
+        for(int i=0;i<n;i++)
+        {
+            if(s[i]=='a')
+                pos.push_back(i);
+        }
+        if(pos.size()==0)
+        {
+           for(int i=0;i<n;i++)
+        {
+            s[i]=m[(s[i]-'a'-1)%26];
+        } 
+            return s;
+        }
+        if(pos.size()==n)
+        {
+            s[n-1]='z';
+            return s;
+        }
+        for(int i=0;i<pos[0];i++)
+        {
+            s[i]=m[(s[i]-'a'-1)%26];
+        }
+        if(pos[0]>0)
+            return s;
+        int sz=pos.size();
+        for(int i=0;i<pos.size()-1;i++)
+        {
+            bool flag=false;
+            for(int j=pos[i]+1;j<pos[i+1];j++)
+           {
+               s[j]=m[(s[j]-'a'-1)%26];
+                flag=true;
+           }
+            if(flag)
+            return s;
+        }
+        for(int k=pos[sz-1]+1;k<n;k++)
+        {
+            s[k]=m[(s[k]-'a'-1)%26];
+        }
+        return s;
+    }
+};
