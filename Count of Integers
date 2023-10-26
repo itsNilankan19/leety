@@ -1,0 +1,106 @@
+You are given two numeric strings num1 and num2 and two integers max_sum and min_sum. We denote an integer x to be good if:
+num1 <= x <= num2
+min_sum <= digit_sum(x) <= max_sum.
+
+Return the number of good integers. Since the answer may be large, return it modulo 109 + 7. Note that digit_sum(x) denotes the sum of the digits of x.
+ 
+
+Example 1:
+
+Input: num1 = "1", num2 = "12", min_sum = 1, max_sum = 8
+Output: 11
+Explanation: There are 11 integers whose sum of digits lies between 1 and 8 are 1,2,3,4,5,6,7,8,10,11, and 12. Thus, we return 11.
+
+
+Example 2:
+
+Input: num1 = "1", num2 = "5", min_sum = 1, max_sum = 5
+Output: 5
+Explanation: The 5 integers whose sum of digits lies between 1 and 5 are 1,2,3,4, and 5. Thus, we return 5.
+ 
+
+Constraints:
+
+1 <= num1 <= num2 <= 1022
+1 <= min_sum <= max_sum <= 400
+
+
+
+
+
+
+Soln :-
+
+
+Java
+class Solution {
+    Integer dp[][][];
+    int mod=1000000007;
+    public int count(String num1, String num2, int min_sum, int max_sum) {
+        dp=new Integer[num1.length()][max_sum+1][2];
+        int v1=f(0, num1, false, 0, max_sum, min_sum);
+        dp=new Integer[num2.length()][max_sum+1][2];
+        int v2=f(0, num2, false, 0, max_sum, min_sum);
+
+        int sum=0; 
+        for(char ch: num1.toCharArray()) sum+=ch-'0';
+        if(sum>=min_sum && sum<=max_sum) v1--;
+
+        return (int)(((long)v2+mod-v1)%mod);
+    }
+    private int f(int ind, String num, boolean isAnynum, int currSum, int max, int min) {
+        int k=isAnynum? 0: 1, maxd=9;
+        long v=0;
+        
+        if(ind==num.length()) return currSum>=min && currSum<=max? 1: 0;
+        if(currSum>max) return 0;
+        if(dp[ind][currSum][k]!=null) return dp[ind][currSum][k];
+
+        if(!isAnynum) maxd=num.charAt(ind)-'0';
+        for(int i=0;i<maxd;i++)
+            v=(v+f(ind+1, num, true, currSum+i, max, min))%mod;
+        v=(v+f(ind+1, num, isAnynum, currSum+maxd, max, min))%mod;
+        return dp[ind][currSum][k]=(int)v;
+    }
+}
+
+C++
+const int MOD = 1e9 + 7;
+
+class Solution {
+    int dp[23][2][2][401];
+
+    int countStrings(int i, bool tight1, bool tight2, int sum, string& num1, string& num2) {
+        if (sum < 0) return 0;
+        if (i == num2.size()) return 1;
+        if (dp[i][tight1][tight2][sum] != -1) return dp[i][tight1][tight2][sum];
+
+        int lo = tight1 ? num1[i] - '0' : 0;
+        int hi = tight2 ? num2[i] - '0' : 9;
+
+        int count = 0;
+        for (int idx = lo; idx <= hi; idx++) {
+            count = (count % MOD + countStrings(i + 1,
+                     tight1 & (idx == lo), tight2 & (idx == hi),
+                     sum - idx, num1, num2) % MOD) % MOD;
+        }
+
+        return dp[i][tight1][tight2][sum] = count;
+    }
+
+public:
+    int count(string num1, string num2, int min_sum, int max_sum) {
+        memset(dp, -1, sizeof(dp));
+        int leadingZeroes = num2.length() - num1.length();
+        string num1extended = string(leadingZeroes,'0')+num1;
+
+        //Avoid dealing with different length numbers
+        //If the numbers are 1 and 999 convert 1 into 001
+
+        int total = countStrings(0, 1, 1, max_sum, num1extended, num2);
+        int unnecessary = countStrings(0, 1, 1, min_sum - 1, num1extended, num2);
+        int ans = (total - unnecessary) % MOD;
+        
+        return (ans < 0) ? ans+MOD : ans;
+    }
+};
