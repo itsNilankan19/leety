@@ -1,0 +1,127 @@
+You are given a 0-indexed array nums consisiting of positive integers. You can do the following operation on the array any number of times:
+Select an index i such that 0 <= i < n - 1 and replace either of nums[i] or nums[i+1] with their gcd value.
+Return the minimum number of operations to make all elements of nums equal to 1. If it is impossible, return -1.
+The gcd of two integers is the greatest common divisor of the two integers.
+ 
+
+Example 1:
+
+Input: nums = [2,6,3,4]
+Output: 4
+Explanation: We can do the following operations:
+- Choose index i = 2 and replace nums[2] with gcd(3,4) = 1. Now we have nums = [2,6,1,4].
+- Choose index i = 1 and replace nums[1] with gcd(6,1) = 1. Now we have nums = [2,1,1,4].
+- Choose index i = 0 and replace nums[0] with gcd(2,1) = 1. Now we have nums = [1,1,1,4].
+- Choose index i = 2 and replace nums[3] with gcd(1,4) = 1. Now we have nums = [1,1,1,1].
+
+
+Example 2:
+
+Input: nums = [2,10,6,14]
+Output: -1
+Explanation: It can be shown that it is impossible to make all the elements equal to 1.
+ 
+
+Constraints:
+
+2 <= nums.length <= 50
+1 <= nums[i] <= 106
+
+
+
+
+
+Soln :-
+
+
+Java
+class Solution {
+    public int minOperations(int[] nums) {
+        int n = nums.length;
+        int g = 0;
+        int one = 0;
+        for (int num : nums) {
+            g = gcd(g, num);
+
+            if (num == 1) 
+                one++;
+        }
+        if (g != 1) 
+            return -1;
+
+        if (one > 0) 
+            return n-one;
+
+        int ans = 100000;
+        for (int i = 0; i < n; i++) {
+            g = 0;
+            for (int j = i; j >= 0; j--) {
+                g = gcd(g, nums[j]);
+                if (g == 1) {
+                    ans = Math.min(ans, i-j+n-1);
+                    break;
+                }
+            }
+        } 
+        return ans; 
+    }
+    
+    static int gcd(int a, int b)
+    {
+        if (b == 0)
+            return a;
+        else
+            return gcd(b, a % b);
+    }
+}
+
+C++
+class Solution {
+public:
+    int gcd(int a, int b)
+    {
+	  if (b == 0)
+	  {
+	  	return a;
+	  }
+	  return gcd(b, a % b);
+    }
+    int findSmallestSubArr(vector<int> &arr, int n, int g){
+        int ans=INT_MAX,gg=0;
+        for(int i=0;i<n;i++){
+            gg=arr[i];
+            for(int j=i;j<n;j++){
+                if(arr[j]%g!=0) break;
+                gg=gcd(gg,arr[j]);
+                if(gg==g){
+                    ans=min(ans,j-i+1);
+                }
+            }
+        }
+        return ans==INT_MAX ? -1:ans;
+    }
+    int minOperations(vector<int>& nums) {
+        int g=nums[0];
+        int one=0;
+        for(auto x:nums)
+        {
+            if(x==1) one++;
+            g=gcd(g,x);
+        }
+        if(g>1) return -1;
+        bool ok=false;
+        int n=nums.size();
+        for(int i=1;i<n;i++)
+        {
+            if(gcd(nums[i],nums[i-1])==1){
+                ok=true;
+                break;
+            }
+        }
+        if(ok) return n-one;
+  
+      int d= findSmallestSubArr(nums,n,1);
+       int ans=d-1+n-1;
+      return ans;
+    }
+};
