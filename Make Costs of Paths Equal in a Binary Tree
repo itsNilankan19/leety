@@ -1,0 +1,93 @@
+You are given an integer n representing the number of nodes in a perfect binary tree consisting of nodes numbered from 1 to n. The root of the tree is node 1 and each node i in the tree has two children where the left child is the node 2 * i and the right child is 2 * i + 1. Each node in the tree also has a cost represented by a given 0-indexed integer array cost of size n where cost[i] is the cost of node i + 1. You are allowed to increment the cost of any node by 1 any number of times.
+Return the minimum number of increments you need to make the cost of paths from the root to each leaf node equal.
+Note:
+A perfect binary tree is a tree where each node, except the leaf nodes, has exactly 2 children.
+The cost of a path is the sum of costs of nodes in the path.
+ 
+
+Example 1:
+
+Input: n = 7, cost = [1,5,2,2,3,3,1]
+Output: 6
+Explanation: We can do the following increments:
+- Increase the cost of node 4 one time.
+- Increase the cost of node 3 three times.
+- Increase the cost of node 7 two times.
+Each path from the root to a leaf will have a total cost of 9.
+The total increments we did is 1 + 3 + 2 = 6.
+It can be shown that this is the minimum answer we can achieve.
+
+
+Example 2:
+
+Input: n = 3, cost = [5,3,3]
+Output: 0
+Explanation: The two paths already have equal total costs, so no increments are needed.
+ 
+
+Constraints:
+
+3 <= n <= 105
+n + 1 is a power of 2
+cost.length == n
+1 <= cost[i] <= 104
+
+
+
+
+
+
+Soln :-
+
+
+Java
+class Solution {
+    int res = 0;
+    public int minIncrements(int n, int[] cost) {
+        dfs(1, cost);
+        return res;
+    }
+
+    public int dfs(int i, int[] cost) {
+        if (i > cost.length) return 0;
+        int left = dfs(i * 2, cost), right = dfs(i * 2 + 1, cost);;
+        res += Math.abs(left - right);
+        return cost[i - 1] + Math.max(left, right);
+    }
+}
+
+C++
+class Solution {
+private:
+    void dfs(int s,vector<int>&cost,vector<int>&maxSum){
+        if(s>(int)cost.size()) return ;
+        dfs(2*s,cost,maxSum);
+        dfs(2*s+1,cost,maxSum);
+        maxSum[s]=cost[s-1]+max(maxSum[2*s],maxSum[(2*s)+1]);
+    }
+public:
+    int minIncrements(int n, vector<int>& cost) {
+        vector<int>maxSum(4*n,0);
+        dfs(1,cost,maxSum);
+        queue<pair<int,int>>q;
+        q.push({1,cost[0]});
+        int total=0;
+        while(!q.empty()){
+            int n=q.size();
+            int numEle=n;
+            int sum=0;
+            int mx=INT_MIN;
+            while(n--){
+                int front=q.front().first;
+                int s=q.front().second;
+                q.pop();
+                int val=min(maxSum[1] - (s+maxSum[2*front]), maxSum[1] - (s+maxSum[2*front + 1]));   // maxSum[1] will contain max sum from root to any leaf
+                total+=val;
+                s+=val;
+                if((2*front)<=(int)cost.size()) q.push({2*front,s+cost[2*front-1]});
+                if(2*front+1<=(int)cost.size()) q.push({2*front+1,s+cost[2*front]});
+            }
+        }
+        return total;
+    }
+};
