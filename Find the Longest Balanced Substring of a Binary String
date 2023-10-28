@@ -1,0 +1,103 @@
+You are given a binary string s consisting only of zeroes and ones. A substring of s is considered balanced if all zeroes are before ones and the number of zeroes is equal to the number of ones inside the substring. Notice that the empty substring is considered a balanced substring. Return the length of the longest balanced substring of s. A substring is a contiguous sequence of characters within a string.
+
+
+Example 1:
+
+Input: s = "01000111"
+Output: 6
+Explanation: The longest balanced substring is "000111", which has length 6.
+
+
+Example 2:
+
+Input: s = "00111"
+Output: 4
+Explanation: The longest balanced substring is "0011", which has length 4. 
+
+
+Example 3:
+
+Input: s = "111"
+Output: 0
+Explanation: There is no balanced substring except the empty substring, so the answer is 0.
+ 
+
+Constraints:
+
+1 <= s.length <= 50
+'0' <= s[i] <= '1'
+
+
+
+
+
+
+Soln :-
+
+
+Java
+class Solution {
+    public int findTheLongestBalancedSubstring(String s) {
+        int cnt0 = 0, cnt1 = 0;
+        int maxLen = 0;
+        for (int i = 0; i < s.length();) {
+            
+            while (i < s.length() && s.charAt(i) == '0') {
+                cnt0++; i++;
+            }
+            while (i < s.length() && s.charAt(i) == '1') {
+                cnt1++; i++;
+            }
+            maxLen = Math.max(maxLen, 2 * Math.min(cnt0, cnt1));
+            cnt0 = cnt1 = 0;    
+        }
+        
+        return maxLen;
+    }
+}
+
+C++
+class Solution { 
+public: 
+    int findTheLongestBalancedSubstring(string s) { 
+        
+        
+        int ans=0; 
+        int n=s.size(); 
+        
+        for(int i=0;i<n;i++){ 
+            
+            int j=i; 
+            int cnt1=0,cnt2=0; 
+            
+            //Count the number of zeroes first.
+            for(;j<n;j++){ 
+                if(s[j]=='0') 
+                     cnt1++; 
+                if(s[j]=='1') 
+                    break; 
+            } 
+            
+            //Count the number of ones now.
+            int k=j; 
+            for(;k<n;k++) 
+            { 
+                if(s[k]=='1') 
+                    cnt2++; 
+                  
+                if(s[k]=='0') 
+                    break; 
+                
+                //If both the number of ones and zeroes matches then check count of ones + count of zeroes
+                // greater than ans or not if yes then update ans.
+                if(cnt1==cnt2){ 
+                    ans=max(ans,(k-i+1)); 
+               } 
+            } 
+             
+        } 
+        
+        return ans; 
+         
+    } 
+};
