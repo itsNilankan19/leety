@@ -1,0 +1,222 @@
+You are given a 0-indexed integer array nums. The distinct count of a subarray of nums is defined as:
+Let nums[i..j] be a subarray of nums consisting of all the indices from i to j such that 0 <= i <= j < nums.length. Then the number of distinct values in nums[i..j] is called the distinct count of nums[i..j].
+Return the sum of the squares of distinct counts of all subarrays of nums.
+
+Since the answer may be very large, return it modulo 109 + 7.
+A subarray is a contiguous non-empty sequence of elements within an array.
+
+ 
+
+Example 1:
+
+Input: nums = [1,2,1]
+Output: 15
+Explanation: Six possible subarrays are:
+[1]: 1 distinct value
+[2]: 1 distinct value
+[1]: 1 distinct value
+[1,2]: 2 distinct values
+[2,1]: 2 distinct values
+[1,2,1]: 2 distinct values
+The sum of the squares of the distinct counts in all subarrays is equal to 12 + 12 + 12 + 22 + 22 + 22 = 15.
+
+
+Example 2:
+
+Input: nums = [2,2]
+Output: 3
+Explanation: Three possible subarrays are:
+[2]: 1 distinct value
+[2]: 1 distinct value
+[2,2]: 1 distinct value
+The sum of the squares of the distinct counts in all subarrays is equal to 12 + 12 + 12 = 3.
+ 
+
+Constraints:
+
+1 <= nums.length <= 105
+1 <= nums[i] <= 105
+
+
+
+
+
+Soln :-
+
+
+C++
+#define N       100005
+#define ll      long long
+#define hell    1000000007
+
+class Solution {
+public:
+    
+    ll int a[N];
+    ll int seg[4*N], segsq[4*N], lazy[4*N];
+
+    // Build the segment tree.
+    void build(int node, ll int start, ll int end) {
+        if (start == end) {
+            seg[node] = a[start];
+            segsq[node] = (a[start] * a[start]) % hell;
+            return;
+        }
+        ll int mid = (start + end) >> 1;
+        build(node << 1, start, mid);
+        build(node << 1 | 1, mid + 1, end);
+        seg[node] = (seg[node << 1] + seg[node << 1 | 1]) % hell;
+        segsq[node] = (segsq[node << 1] + segsq[node << 1 | 1]) % hell;
+    }
+
+    // Update the segment tree and handle lazy propagation.
+    void update(int node, ll int start, ll int end, int l, int r, int val) {
+        if (lazy[node] != 0) {
+            segsq[node] += ((end - start + 1) * (lazy[node] * lazy[node]) % hell) % hell + (2 * lazy[node] * seg[node]) % hell;
+            segsq[node] %= hell;
+            seg[node] += ((end - start + 1) * lazy[node]) % hell;
+            seg[node] %= hell;
+            if (start != end) {
+                lazy[node << 1] += lazy[node];
+                lazy[node << 1 | 1] += lazy[node];
+            }
+            lazy[node] = 0;
+        }
+        if (start > end || start > r || end < l) return;
+        if (l <= start && end <= r) {
+            segsq[node] += ((end - start + 1) * (val * val) % hell) % hell + (2 * val * seg[node]) % hell;
+            segsq[node] %= hell;
+            seg[node] += ((end - start + 1) * val) % hell;
+            seg[node] %= hell;
+            if (start != end) {
+                lazy[node << 1] += val;
+                lazy[node << 1 | 1] += val;
+            }
+            return;
+        }
+        ll int mid = (start + end) >> 1;
+        update(node << 1, start, mid, l, r, val);
+        update(node << 1 | 1, mid + 1, end, l, r, val);
+        seg[node] = (seg[node << 1] + seg[node << 1 | 1]) % hell;
+        segsq[node] = (segsq[node << 1] + segsq[node << 1 | 1]) % hell;
+    }
+
+    // Main function to find the sum of counts.
+    int sumCounts(vector<int>& nums) {
+        int n = nums.size();
+        
+        // Initialize the array 'a' with 0 values.
+        for (int i = 1; i <= n; i++) {
+            a[i] = 0;
+        }
+        
+        // Build the segment tree.
+        build(1, 1, n);
+        
+        // Use a map to store the last seen index of each number.
+        unordered_map<int, int> prev_seen_at;
+        
+        ll int ans = 0;
+        
+        for (int i = n - 1; i >= 0; i--) {
+            if (prev_seen_at.find(nums[i]) == prev_seen_at.end()) {
+                update(1, 1, n, i + 1, n, 1);
+            }
+            else {
+                update(1, 1, n, i + 1, prev_seen_at[nums[i]] - 1, 1);
+            }
+            
+            prev_seen_at[nums[i]] = i + 1;
+            
+            ans = (ans + segsq[1]) % hell;
+        }
+        
+        return ans;
+    }
+};
+
+
+Java
+public class Solution {
+    private final long N = 100005;
+    private final long hell = 1000000007;
+    private long[] a = new long[(int) N];
+    private long[] seg = new long[4 * (int) N];
+    private long[] segsq = new long[4 * (int) N];
+    private long[] lazy = new long[4 * (int) N];
+
+    // Build the segment tree.
+    private void build(int node, long start, long end) {
+        if (start == end) {
+            seg[node] = a[(int) start];
+            segsq[node] = (a[(int) start] * a[(int) start]) % hell;
+            return;
+        }
+        long mid = (start + end) >> 1;
+        build(node << 1, start, mid);
+        build(node << 1 | 1, mid + 1, end);
+        seg[node] = (seg[node << 1] + seg[node << 1 | 1]) % hell;
+        segsq[node] = (segsq[node << 1] + segsq[node << 1 | 1]) % hell;
+    }
+
+    // Update the segment tree and handle lazy propagation.
+    private void update(int node, long start, long end, int l, int r, int val) {
+        if (lazy[node] != 0) {
+            segsq[node] += ((end - start + 1) * (lazy[node] * lazy[node]) % hell) % hell + (2 * lazy[node] * seg[node]) % hell;
+            segsq[node] %= hell;
+            seg[node] += ((end - start + 1) * lazy[node]) % hell;
+            seg[node] %= hell;
+            if (start != end) {
+                lazy[node << 1] += lazy[node];
+                lazy[node << 1 | 1] += lazy[node];
+            }
+            lazy[node] = 0;
+        }
+        if (start > end || start > r || end < l) return;
+        if (l <= start && end <= r) {
+            segsq[node] += ((end - start + 1) * (val * val) % hell) % hell + (2 * val * seg[node]) % hell;
+            segsq[node] %= hell;
+            seg[node] += ((end - start + 1) * val) % hell;
+            seg[node] %= hell;
+            if (start != end) {
+                lazy[node << 1] += val;
+                lazy[node << 1 | 1] += val;
+            }
+            return;
+        }
+        long mid = (start + end) >> 1;
+        update(node << 1, start, mid, l, r, val);
+        update(node << 1 | 1, mid + 1, end, l, r, val);
+        seg[node] = (seg[node << 1] + seg[node << 1 | 1]) % hell;
+        segsq[node] = (segsq[node << 1] + segsq[node << 1 | 1]) % hell;
+    }
+
+    // Main function to find the sum of counts.
+    public int sumCounts(int[] nums) {
+        int n = nums.length;
+        for (int i = 1; i <= n; i++) {
+            a[i] = 0;
+        }
+
+        // Build the segment tree.
+        build(1, 1, n);
+
+        HashMap<Integer, Integer> prev_seen_at = new HashMap<>();
+
+        long ans = 0;
+
+        for (int i = n - 1; i >= 0; i--) {
+            if (!prev_seen_at.containsKey(nums[i])) {
+                update(1, 1, n, i + 1, n, 1);
+            } else {
+                update(1, 1, n, i + 1, prev_seen_at.get(nums[i]) - 1, 1);
+            }
+
+            prev_seen_at.put(nums[i], i + 1);
+
+            ans = (ans + segsq[1]) % hell;
+        }
+
+        return (int) ans;
+    }
+}
